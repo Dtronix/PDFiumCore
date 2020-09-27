@@ -1,2 +1,1 @@
-PDFiumCoreBindingsGenerator.exe "https://api.github.com/repos/bblanchon/pdfium-binaries/releases/latest" "0"
-pause
+PDFiumCoreBindingsGenerator.exe "https://api.github.com/repos/bblanchon/pdfium-binaries/releases/31587582" "0" true

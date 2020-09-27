@@ -16,7 +16,8 @@ namespace PDFiumCoreBindingsGenerator
         static void Main(string[] args)
         {
             var pdfiumReleaseGithubUrl = args[0];
-            string minorBuild = args.Length > 1 ? args[1] : "0";
+            var minorBuild = args.Length > 1 ? args[1] : "0";
+            var downloadBinaries = args.Length <= 2 || bool.Parse(args[2]);
 
             Console.WriteLine("Downloading PDFium release info...");
             _client = new WebClient();
@@ -38,7 +39,8 @@ namespace PDFiumCoreBindingsGenerator
             {
                 if (releaseInfoAsset.Name.Contains("-v8"))
                     continue;
-                DownloadAndExtract(releaseInfoAsset.BrowserDownloadUrl);
+                if(downloadBinaries)
+                    DownloadAndExtract(releaseInfoAsset.BrowserDownloadUrl);
             }
 
             // Build PDFium.cs from the windows x64 build header files.
