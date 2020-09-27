@@ -32,7 +32,7 @@ namespace PDFiumCoreBindingsGenerator
             var options = driver.Options;
             options.GeneratorKind = GeneratorKind.CSharp;
             //options.Verbose = true;
-            options.CommentKind = CommentKind.BCPL;
+            options.CommentKind = CommentKind.BCPLSlash;
 
             var module = options.AddModule("PDFiumCore");
             module.SharedLibraryName = "pdfium";
@@ -56,7 +56,8 @@ namespace PDFiumCoreBindingsGenerator
 
         public void SetupPasses(Driver driver)
         {
-    
+            driver.AddTranslationUnitPass(new FixCommentsPass());
+
         }
     }
 }
