@@ -44,15 +44,13 @@ namespace PDFiumCoreBindingsGenerator
             // Build PDFium.cs from the windows x64 build header files.
             ConsoleDriver.Run(new PDFiumCoreLibrary("pdfium-windows-x64"));
 
-            if (Directory.Exists("PDFiumCore"))
-                Directory.Delete("PDFiumCore", true);
-
-            Directory.CreateDirectory("PDFiumCore");
+            if (Directory.Exists("../../../../PDFiumCore/runtimes"))
+                Directory.Delete("../../../../PDFiumCore/runtimes", true);
 
             // Add the additional build information in the header.
             var fileContents = File.ReadAllText("PDFiumCore.cs");
 
-            using (var fs = new FileStream("PDFiumCore/PDFiumCore.cs", FileMode.Create, FileAccess.ReadWrite,
+            using (var fs = new FileStream("../../../../PDFiumCore/PDFiumCore.cs", FileMode.Create, FileAccess.ReadWrite,
                 FileShare.None))
             using (var sw = new StreamWriter(fs))
             {
@@ -63,42 +61,21 @@ namespace PDFiumCoreBindingsGenerator
             }
 
             // Copy the binary files.
-            Directory.CreateDirectory("PDFiumCore/runtimes/win-x86/native/");
-            File.Copy("pdfium-windows-x86/x86/bin/pdfium.dll", "PDFiumCore/runtimes/win-x86/native/pdfium.dll");
-            File.Copy("pdfium-windows-x86/LICENSE", "PDFiumCore/runtimes/win-x86/native/PDFium-LICENSE");
+            Directory.CreateDirectory("../../../../PDFiumCore/runtimes/win-x86/native/");
+            File.Copy("pdfium-windows-x86/x86/bin/pdfium.dll", "../../../../PDFiumCore/runtimes/win-x86/native/pdfium.dll");
+            File.Copy("pdfium-windows-x86/LICENSE", "../../../../PDFiumCore/runtimes/win-x86/native/PDFium-LICENSE");
 
-            Directory.CreateDirectory("PDFiumCore/runtimes/win-x64/native/");
-            File.Copy("pdfium-windows-x64/x64/bin/pdfium.dll", "PDFiumCore/runtimes/win-x64/native/pdfium.dll");
-            File.Copy("pdfium-windows-x64/LICENSE", "PDFiumCore/runtimes/win-x64/native/PDFium-LICENSE");
+            Directory.CreateDirectory("../../../../PDFiumCore/runtimes/win-x64/native/");
+            File.Copy("pdfium-windows-x64/x64/bin/pdfium.dll", "../../../../PDFiumCore/runtimes/win-x64/native/pdfium.dll");
+            File.Copy("pdfium-windows-x64/LICENSE", "../../../../PDFiumCore/runtimes/win-x64/native/PDFium-LICENSE");
 
-            Directory.CreateDirectory("PDFiumCore/runtimes/linux/native/");
-            File.Copy("pdfium-linux/lib/libpdfium.so", "PDFiumCore/runtimes/linux/native/pdfium.so");
-            File.Copy("pdfium-linux/LICENSE", "PDFiumCore/runtimes/linux/native/PDFium-LICENSE");
+            Directory.CreateDirectory("../../../../PDFiumCore/runtimes/linux/native/");
+            File.Copy("pdfium-linux/lib/libpdfium.so", "../../../../PDFiumCore/runtimes/linux/native/pdfium.so");
+            File.Copy("pdfium-linux/LICENSE", "../../../../PDFiumCore/runtimes/linux/native/PDFium-LICENSE");
 
-            Directory.CreateDirectory("PDFiumCore/runtimes/osx/native/");
-            File.Copy("pdfium-darwin/lib/libpdfium.dylib", "PDFiumCore/runtimes/osx/native/pdfium.dylib");
-            File.Copy("pdfium-darwin/LICENSE", "PDFiumCore/runtimes/osx/native/PDFium-LICENSE");
-            
-
-            using (var fs = new FileStream("PDFiumCore/PDFiumCore.csproj", FileMode.Create, FileAccess.ReadWrite,
-                FileShare.None))
-            using (var sw = new StreamWriter(fs))
-            {
-                sw.WriteLine("<Project Sdk=\"Microsoft.NET.Sdk\">");
-                sw.WriteLine("  <PropertyGroup>");
-                sw.WriteLine("    <TargetFramework>netstandard2.1</TargetFramework>");
-                sw.WriteLine("    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>");
-
-                var versionParts = releaseInfo.TagName.Split('/');
-                sw.WriteLine($"    <Version>{versionParts[1]}.{minorBuild}.0</Version>");
-                sw.WriteLine("    <PackageLicenseExpression>MIT</PackageLicenseExpression>");
-                sw.WriteLine("  </PropertyGroup>");
-                sw.WriteLine("  <ItemGroup>");
-                sw.WriteLine("    <Content Include=\"runtimes/**\" PackagePath=\"runtimes\" />");
-                sw.WriteLine("  </ItemGroup>");
-                sw.WriteLine("</Project>");
-            }
-
+            Directory.CreateDirectory("../../../../PDFiumCore/runtimes/osx/native/");
+            File.Copy("pdfium-darwin/lib/libpdfium.dylib", "../../../../PDFiumCore/runtimes/osx/native/pdfium.dylib");
+            File.Copy("pdfium-darwin/LICENSE", "../../../../PDFiumCore/runtimes/osx/native/PDFium-LICENSE");
 
             Process cmd = new Process
             {
@@ -112,10 +89,8 @@ namespace PDFiumCoreBindingsGenerator
             };
             cmd.Start();
 
-            cmd.StandardInput.WriteLine("dotnet build PDFiumCore/PDFiumCore.csproj -c Release");
-            cmd.StandardInput.Flush();
-
-            cmd.StandardInput.WriteLine("dotnet pack PDFiumCore/PDFiumCore.csproj -c Release");
+            var versionParts = releaseInfo.TagName.Split('/');
+            cmd.StandardInput.WriteLine($"dotnet pack \"../../../../PDFiumCore/PDFiumCore.csproj\" -p:Version=\"{versionParts[1]}.{minorBuild}.0.0\" -c Release -o \"../../../../../output/\"");
             cmd.StandardInput.Flush();
 
             cmd.StandardInput.Close();

@@ -5,10 +5,7 @@
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="build.bat" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="build.bat">
+    <Content Include="CreatePackage.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

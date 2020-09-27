@@ -1,0 +1,7 @@
+/src/PDFiumCore/PDFiumCore.cs
+PDFium-LICENSE
+/output
+PDFium.cs
+pdfium.so
+pdfium.dylib
+pdfium.dll
