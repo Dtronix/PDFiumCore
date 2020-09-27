@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Dtronix/PDFiumCore</PackageProjectUrl>
+    <Description>PDFiumCore is a wrapper to generate pinvoke bindings to allow for usage in all languages which support .NET Standard 2.1. Includes the runtime native binary files for Linux, OSX &amp; Windows.</Description>
+    <PackageTags>pinvoke dotnet interop pdf pdfium</PackageTags>
+    <RepositoryUrl>https://github.com/Dtronix/PDFiumCore</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Authors>DJGosnell</Authors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="runtimes/**" PackagePath="runtimes" />
+  </ItemGroup>
+</Project>
