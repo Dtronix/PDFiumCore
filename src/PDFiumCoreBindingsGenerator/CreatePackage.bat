@@ -1,1 +1,1 @@
-PDFiumCoreBindingsGenerator.exe "https://api.github.com/repos/bblanchon/pdfium-binaries/releases/31587582" "0" true
+PDFiumCoreBindingsGenerator.exe "https://api.github.com/repos/bblanchon/pdfium-binaries/releases/31870262" "0" true
