@@ -94,10 +94,10 @@ namespace PDFiumCoreBindingsGenerator
             var versionParts = releaseInfo.TagName.Split('/');
             cmd.StandardInput.WriteLine($"dotnet pack \"../../../../PDFiumCore/PDFiumCore.csproj\" -p:Version=\"{versionParts[1]}.{minorBuild}.0.0\" -c Release -o \"../../../../../output/\"");
             cmd.StandardInput.Flush();
-
             cmd.StandardInput.Close();
-            cmd.WaitForExit();
+
             Console.WriteLine(cmd.StandardOutput.ReadToEnd());
+            cmd.WaitForExit();
         }
 
         public static void ExtractTGZ(string gzArchiveName, string destFolder)
