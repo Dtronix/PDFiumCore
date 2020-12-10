@@ -1,1 +1,1 @@
-PDFiumCoreBindingsGenerator.exe "https://api.github.com/repos/bblanchon/pdfium-binaries/releases/34294127" "0" true >build.log & type build.log
+PDFiumCoreBindingsGenerator.exe "https://api.github.com/repos/bblanchon/pdfium-binaries/releases/34911950" "0" true >build.log & type build.log
