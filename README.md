@@ -13,19 +13,15 @@ https://github.com/mono/CppSharp
 
 ### Build Requirements
 - .NET Core 3.1
-- .NET Framework 4.8 
-  - PDFiumCoreBindingsGenerator currently uses [CppSharp](https://github.com/mono/CppSharp) to read the header files to create the bindings out of.  CppSharp currently only has a .NET Framework implementation so to create the PDFiumCore bindings, .NET Framework 4.8 is required.  Once a .NET Core version is available, the bindings generator will be updated accordingly.
 
-### Building 
+### Manual Building 
 
-Build PDFiumCoreBindingsGenerator and edit the file at ``/bin/Debug/net48/CreatePackage.bat`` and change the URL to the desired release.
+Build PDFiumCoreBindingsGenerator and edit the file at ``PDFiumCoreBindingsGenerator/bin/Release/netcoreapp3.1/CreatePackage.bat`` and change the URL to the desired release.
 
 PDFiumCoreBindingsGenerator.exe requires the following parameters:
  - [0] Github API url for the release. (eg. https://api.github.com/repos/bblanchon/pdfium-binaries/releases/latest)  This is to determine the release version and binary assets to download.
  - [1] Version to set the Version.Minor property to.  This is used for building patches. Usually set to "0"
  - [2] Set to true to download the latest binary assets and extract.  False to use the assets if they already exist in the directory.
- 
-https://api.github.com/repos/bblanchon/pdfium-binaries/releases/31587582
 
 Execute the CreatePacakge.bat
 
@@ -43,4 +39,4 @@ This will do the following:
  - Include documentation for more than just the public methods.
 
 ### License
-Matching the PDFium project this project is released under [Apache-2.0 License](LICENSE).
+Matching the PDFium project, this project is released under [Apache-2.0 License](LICENSE).
