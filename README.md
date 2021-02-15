@@ -2,6 +2,13 @@
 
 PDFiumCore contains the PDFium library binaries with a .NET Standard 2.1 wrapper containing all the exposed public header methods of the library.
 
+Operating environments supported:
+ - linux
+ - osx-arm64
+ - osx-x64
+ - win-x64
+ - win-x86
+
 Bindings are generated from the binaries and header files created at [pdfium-binaries](https://github.com/bblanchon/pdfium-binaries) repository.
 
 #### Resources
