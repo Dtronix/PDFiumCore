@@ -14,4 +14,13 @@
   <ItemGroup>
     <Content Include="runtimes/**" PackagePath="runtimes" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\CppSharp\src\Runtime\MarshalUtil.cs" Link="CppSharp\MarshalUtil.cs" />
+    <Compile Include="..\CppSharp\src\Runtime\Pointer.cs" Link="CppSharp\Pointer.cs" />
+    <Compile Include="..\CppSharp\src\Runtime\SafeUnmanagedMemoryHandle.cs" Link="CppSharp\SafeUnmanagedMemoryHandle.cs" />
+    <Compile Include="..\CppSharp\src\Runtime\SymbolResolver.cs" Link="CppSharp\SymbolResolver.cs" />
+    <Compile Include="..\CppSharp\src\Runtime\UTF32Marshaller.cs" Link="CppSharp\UTF32Marshaller.cs" />
+    <Compile Include="..\CppSharp\src\Runtime\UTF8Marshaller.cs" Link="CppSharp\UTF8Marshaller.cs" />
+    <Compile Include="..\CppSharp\src\Runtime\VTables.cs" Link="CppSharp\VTables.cs" />
+  </ItemGroup>
 </Project>

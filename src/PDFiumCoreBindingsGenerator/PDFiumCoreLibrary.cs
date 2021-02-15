@@ -14,18 +14,21 @@ namespace PDFiumCoreBindingsGenerator
         {
             _directoryName = directoryName;
         }
-        public void Postprocess(Driver driver, ASTContext ctx)
+
+        public override void Preprocess(Driver driver, ASTContext ctx)
+        {
+            
+        }
+
+        public override void Postprocess(Driver driver, ASTContext ctx)
         {
             // Fix for generating code which will not compile.
             var fpdfLibraryConfig = ctx.FindClass("FPDF_LIBRARY_CONFIG_");
             fpdfLibraryConfig.First().Properties.First(f => f.OriginalName == "m_pUserFontPaths").Ignore = true;
         }
 
-        public void Preprocess(Driver driver, ASTContext ctx)
-        {
-        }
 
-        public void Setup(Driver driver)
+        public override void Setup(Driver driver)
         {
             var includeDirectory = Path.Combine(_directoryName, "include");
             driver.ParserOptions.SetupMSVC(VisualStudioVersion.Latest);
@@ -54,7 +57,7 @@ namespace PDFiumCoreBindingsGenerator
             }
         }
 
-        public void SetupPasses(Driver driver)
+        public override void SetupPasses(Driver driver)
         {
             driver.AddTranslationUnitPass(new FixCommentsPass());
 
