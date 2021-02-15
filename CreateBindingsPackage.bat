@@ -1,4 +1,5 @@
 git clean -fxd
-"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" src\PDFiumCoreBindingsGenerator\PDFiumCoreBindingsGenerator.csproj -r
-cd src\PDFiumCoreBindingsGenerator\bin\Debug\net48
+dotnet build src\PDFiumCoreBindingsGenerator\PDFiumCoreBindingsGenerator.csproj -c Release
+cd .\src\PDFiumCoreBindingsGenerator\bin\Release\netcoreapp3.1
 CreatePackage.bat
+pause

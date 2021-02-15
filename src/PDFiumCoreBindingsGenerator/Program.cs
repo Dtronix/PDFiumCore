@@ -75,9 +75,13 @@ namespace PDFiumCoreBindingsGenerator
             File.Copy("pdfium-linux/lib/libpdfium.so", "../../../../PDFiumCore/runtimes/linux/native/pdfium.so");
             File.Copy("pdfium-linux/LICENSE", "../../../../PDFiumCore/runtimes/linux/native/PDFium-LICENSE");
 
-            Directory.CreateDirectory("../../../../PDFiumCore/runtimes/osx/native/");
-            File.Copy("pdfium-darwin/lib/libpdfium.dylib", "../../../../PDFiumCore/runtimes/osx/native/pdfium.dylib");
-            File.Copy("pdfium-darwin/LICENSE", "../../../../PDFiumCore/runtimes/osx/native/PDFium-LICENSE");
+            Directory.CreateDirectory("../../../../PDFiumCore/runtimes/osx-x64/native/");
+            File.Copy("pdfium-darwin-x64/lib/libpdfium.dylib", "../../../../PDFiumCore/runtimes/osx-x64/native/pdfium.dylib");
+            File.Copy("pdfium-darwin-x64/LICENSE", "../../../../PDFiumCore/runtimes/osx-x64/native/PDFium-LICENSE");
+
+            Directory.CreateDirectory("../../../../PDFiumCore/runtimes/osx-arm64/native/");
+            File.Copy("pdfium-darwin-arm64/lib/GNUSparseFile.0/libpdfium.dylib", "../../../../PDFiumCore/runtimes/osx-arm64/native/pdfium.dylib");
+            File.Copy("pdfium-darwin-arm64/LICENSE", "../../../../PDFiumCore/runtimes/osx-arm64/native/PDFium-LICENSE");
 
             Process cmd = new Process
             {
