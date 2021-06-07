@@ -1,22 +1,12 @@
 # PDFiumCore [![NuGet](https://img.shields.io/nuget/v/PDFiumCore.svg?maxAge=60)](https://www.nuget.org/packages/PDFiumCore)
 
-PDFiumCore contains the PDFium library binaries with a .NET Standard 2.1 wrapper containing all the exposed public header methods of the library.
-
-Operating environments supported:
- - linux
- - osx-arm64
- - osx-x64
- - win-x64
- - win-x86
+PDFiumCore is a .NET Standard 2.1 wrapper for the [PDFium](https://pdfium.googlesource.com/pdfium/) library which includes the [binaries](https://github.com/bblanchon/pdfium-binaries) and header pinvoke bindings.  Supports Linux, OSX-arm64, OSX-x64, Win-x64, Win-x86.
 
 Bindings are generated from the binaries and header files created at [pdfium-binaries](https://github.com/bblanchon/pdfium-binaries) repository.
 
-#### Resources
-https://pdfium.googlesource.com/pdfium/
+### Usage
 
-https://github.com/bblanchon/pdfium-binaries
-
-https://github.com/mono/CppSharp
+The preferred way to use this project is to use the [Nuget Package](https://www.nuget.org/packages/PDFiumCore).  This will ensure all the proper bindings in the `*.deps.json` are generated and included for the targeted environments.
 
 ### Build Requirements
 - .NET Core 3.1
@@ -44,6 +34,14 @@ This will do the following:
 ### ToDo
  - Create an actual parser for the comments and generate functional C# method documentation.
  - Include documentation for more than just the public methods.
+
+### Resources
+
+https://pdfium.googlesource.com/pdfium/
+
+https://github.com/bblanchon/pdfium-binaries
+
+https://github.com/mono/CppSharp
 
 ### License
 Matching the PDFium project, this project is released under [Apache-2.0 License](LICENSE).
