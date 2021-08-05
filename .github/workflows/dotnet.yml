@@ -1,0 +1,51 @@
+name: Build, Pack & Publish
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+  release:
+    types: [published]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+
+    runs-on: windows-latest  
+                             
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        submodules: true
+
+    - name: Install .NET 5
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.102
+        source-url: https://api.nuget.org/v3/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+    - name: Build
+      run: dotnet build src/PDFiumCore -c ${{ matrix.configuration }}
+      
+    - name: Pack
+      if: matrix.configuration == 'Release'
+      run: dotnet pack src/PDFiumCore -c ${{ matrix.configuration }} -o ./artifacts
+      
+    - name: Export artifacts
+      if: matrix.configuration == 'Release'
+      uses: actions/upload-artifact@v2
+      with:
+        path: artifacts/*
+      
+    - name: Push Nuget packages
+      if: github.event_name == 'release' && matrix.configuration == 'Release'
+      run: dotnet nuget push artifacts/**/*.nupkg --api-key ${{ secrets.ORG_NUGET_AUTH_TOKEN }} --skip-duplicate
