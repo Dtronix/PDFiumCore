@@ -1,1 +1,2 @@
-PDFiumCoreBindingsGenerator.exe "https://api.github.com/repos/bblanchon/pdfium-binaries/releases/latest" "0" true >build.log & type build.log
+PDFiumCoreBindingsGenerator.exe "https://api.github.com/repos/bblanchon/pdfium-binaries/releases/latest" "0" true
+dotnet pack "../../../../PDFiumCore/PDFiumCore.csproj" -c Release -o "../../../../../artifacts/"
