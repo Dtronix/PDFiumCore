@@ -64,44 +64,65 @@ namespace PDFiumCoreBindingsGenerator
 
             // Copy the binary files.
             Directory.CreateDirectory("../../../../PDFiumCore/runtimes/win-x86/native/");
-            File.Copy("pdfium-windows-x86/x86/bin/pdfium.dll", "../../../../PDFiumCore/runtimes/win-x86/native/pdfium.dll");
+            if (!EnsureCopy("pdfium-windows-x86/x86/bin/pdfium.dll", "../../../../PDFiumCore/runtimes/win-x86/native/pdfium.dll"))
+                return;
             File.Copy("pdfium-windows-x86/LICENSE", "../../../../PDFiumCore/runtimes/win-x86/native/PDFium-LICENSE");
 
             Directory.CreateDirectory("../../../../PDFiumCore/runtimes/win-x64/native/");
-            File.Copy("pdfium-windows-x64/x64/bin/pdfium.dll", "../../../../PDFiumCore/runtimes/win-x64/native/pdfium.dll");
+            if (!EnsureCopy("pdfium-windows-x64/x64/bin/pdfium.dll", "../../../../PDFiumCore/runtimes/win-x64/native/pdfium.dll"))
+                return;
             File.Copy("pdfium-windows-x64/LICENSE", "../../../../PDFiumCore/runtimes/win-x64/native/PDFium-LICENSE");
 
             Directory.CreateDirectory("../../../../PDFiumCore/runtimes/linux/native/");
-            File.Copy("pdfium-linux/lib/libpdfium.so", "../../../../PDFiumCore/runtimes/linux/native/pdfium.so");
+            if (!EnsureCopy("pdfium-linux/lib/libpdfium.so", "../../../../PDFiumCore/runtimes/linux/native/pdfium.so"))
+                return;
             File.Copy("pdfium-linux/LICENSE", "../../../../PDFiumCore/runtimes/linux/native/PDFium-LICENSE");
 
             Directory.CreateDirectory("../../../../PDFiumCore/runtimes/osx-x64/native/");
-            File.Copy("pdfium-darwin-x64/lib/libpdfium.dylib", "../../../../PDFiumCore/runtimes/osx-x64/native/pdfium.dylib");
+            if (!EnsureCopy("pdfium-darwin-x64/lib/libpdfium.dylib", "../../../../PDFiumCore/runtimes/osx-x64/native/pdfium.dylib"))
+                return;
             File.Copy("pdfium-darwin-x64/LICENSE", "../../../../PDFiumCore/runtimes/osx-x64/native/PDFium-LICENSE");
 
             Directory.CreateDirectory("../../../../PDFiumCore/runtimes/osx-arm64/native/");
-            File.Copy("pdfium-darwin-arm64/lib/GNUSparseFile.0/libpdfium.dylib", "../../../../PDFiumCore/runtimes/osx-arm64/native/pdfium.dylib");
+
+            if (!EnsureCopy("pdfium-darwin-arm64/lib/GNUSparseFile.0/libpdfium.dylib", "../../../../PDFiumCore/runtimes/osx-arm64/native/pdfium.dylib"))
+                return;
             File.Copy("pdfium-darwin-arm64/LICENSE", "../../../../PDFiumCore/runtimes/osx-arm64/native/PDFium-LICENSE");
 
-            Process cmd = new Process
-            {
-                StartInfo =
-                {
-                    FileName = "cmd.exe",
-                    RedirectStandardInput = true,
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false
-                }
-            };
-            cmd.Start();
-
             var versionParts = releaseInfo.TagName.Split('/');
-            cmd.StandardInput.WriteLine($"dotnet pack \"../../../../PDFiumCore/PDFiumCore.csproj\" -p:Version=\"{versionParts[1]}.{minorBuild}.0.0\" -c Release -o \"../../../../../output/\"");
-            cmd.StandardInput.Flush();
-            cmd.StandardInput.Close();
 
-            Console.WriteLine(cmd.StandardOutput.ReadToEnd());
-            cmd.WaitForExit();
+            // Create the version file.
+            using (var stream = File.OpenWrite("../../../../Directory.Build.props"))
+            using (var writer = new StreamWriter(stream))
+            {
+                writer.WriteLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+                writer.WriteLine("<Project>");
+                writer.WriteLine("  <PropertyGroup>");
+                writer.Write("    <Version>");
+                writer.Write($"{versionParts[1]}.{minorBuild}.0.0");
+                writer.WriteLine("</Version>");
+                writer.WriteLine("  </PropertyGroup>");
+                writer.WriteLine("</Project>");
+            }
+        }
+
+        private static void WriteError(string error)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Error: " + error);
+            Console.ReadLine();
+        }
+
+        private static bool EnsureCopy(string sourcePath, string destinationPath)
+        {
+            if (!File.Exists(sourcePath))
+            {
+                WriteError($"Could not find {sourcePath}");
+                return false;
+            }
+
+            File.Copy(sourcePath, destinationPath);
+            return true;
         }
 
         public static void ExtractTGZ(string gzArchiveName, string destFolder)
