@@ -45,6 +45,11 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         path: artifacts/*
+        
+    - name: Get tag name
+      if: startsWith(github.ref, 'refs/tags/') && matrix.configuration == 'Release'
+      uses: olegtarasov/get-tag@v2.1
+      id: tagName
       
     - name: Create changelog
       if: startsWith(github.ref, 'refs/tags/') && matrix.configuration == 'Release'
@@ -52,9 +57,9 @@ jobs:
       
     - name: Create release
       uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
+      if: startsWith(github.ref, 'refs/tags/') && matrix.configuration == 'Release'
       with:
-        name: "PDFiumCore ${GITHUB_REF#refs/*/} Released"
+        name: "PDFiumCore ${{ steps.tagName.outputs.tag }} Released"
         files: artifacts/*.nupkg
         body_path: ${{github.workspace}}/CHANGELOG.TXT
       
