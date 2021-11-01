@@ -9,17 +9,15 @@ Bindings are generated from the binaries and header files created at [pdfium-bin
 The preferred way to use this project is to use the [Nuget Package](https://www.nuget.org/packages/PDFiumCore).  This will ensure all the proper bindings in the `*.deps.json` are generated and included for the targeted environments.
 
 ### Build Requirements
-- .NET Core 3.1
 - .NET 5.0
 
 ### Manual Building 
 
-Build PDFiumCoreBindingsGenerator and edit the file at ``PDFiumCoreBindingsGenerator/bin/Release/netcoreapp3.1/CreatePackage.bat`` and change the URL to the desired release.
+Build PDFiumCoreBindingsGenerator and edit the file at ``PDFiumCoreBindingsGenerator/bin/Release/net5.0/CreatePackage.bat`` and change the URL to the desired release.
 
 PDFiumCoreBindingsGenerator.exe requires the following parameters:
- - [0] Github API url for the release. (eg. https://api.github.com/repos/bblanchon/pdfium-binaries/releases/latest)  This is to determine the release version and binary assets to download.
+ - [0] Set to either a specific Github API release ID for the `bblanchon/pdfium-binaries` project or `latest`. This is to determine the release version and binary assets to download.
  - [1] Version to set the Version.Minor property to.  This is used for building patches. Usually set to "0"
- - [2] Set to true to download the latest binary assets and extract.  False to use the assets if they already exist in the directory.
 
 Execute the CreatePacakge.bat
 

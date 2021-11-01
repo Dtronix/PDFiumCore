@@ -16,7 +16,7 @@ jobs:
       matrix:
         configuration: [Debug, Release]
 
-    runs-on: windows-latest  
+    runs-on: ubuntu-latest
                              
     steps:
     - name: Checkout
