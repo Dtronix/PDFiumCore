@@ -1,6 +1,6 @@
-# PDFiumCore [![NuGet](https://img.shields.io/nuget/v/PDFiumCore.svg?maxAge=60)](https://www.nuget.org/packages/PDFiumCore)
+# PDFiumCore [![NuGet](https://img.shields.io/nuget/v/PDFiumCore.svg?maxAge=60)](https://www.nuget.org/packages/PDFiumCore) ![Action Workflow](https://github.com/Dtronix/PDFiumCore/actions/workflows/dotnet.yml/badge.svg)
 
-PDFiumCore is a .NET Standard 2.1 wrapper for the [PDFium](https://pdfium.googlesource.com/pdfium/) library which includes the [binaries](https://github.com/bblanchon/pdfium-binaries) and header pinvoke bindings.  Supports Linux, OSX-arm64, OSX-x64, Win-x64, Win-x86.
+PDFiumCore is a .NET Standard 2.1 wrapper for the [PDFium](https://pdfium.googlesource.com/pdfium/) library which includes the [binaries](https://github.com/bblanchon/pdfium-binaries) and header pinvoke bindings.  Supports Linux-x64, OSX-x64, Win-x64, Win-x86.
 
 Bindings are generated from the binaries and header files created at [pdfium-binaries](https://github.com/bblanchon/pdfium-binaries) repository.
 
@@ -10,6 +10,7 @@ The preferred way to use this project is to use the [Nuget Package](https://www.
 
 ### Build Requirements
 - .NET Core 3.1
+- .NET 5.0
 
 ### Manual Building 
 
@@ -26,9 +27,9 @@ This will do the following:
  - Download the specified files at the passed pdfium-binaries API url.
  - Extracts the zip & tgz (Actually tar) files into the current directory.
  - Opens the pdfium-windows-x64 directory and parses the header files via CppSharp and generates ``PDFiumCore.cs`` in the current directory.
- - Copies the libraries and licenses into their respecive ``src/PDFiumCore/runtimes`` directories.
+ - Copies the libraries and licenses into their respective ``src/PDFiumCore/runtimes`` directories.
  - Copies/Overrides ``src/PDFiumCore/PDFiumCore.cs`` with the newly generated ``PDFiumCore.cs``.
- - Executes ``dotnet package`` on the PDFiumCore project. and putputs the Nuget package in the project root ``output`` directory.
+ - Executes ``dotnet package`` on the PDFiumCore project. and puts the Nuget package in the project root ``output`` directory.
 
 
 ### ToDo
