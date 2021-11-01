@@ -10,6 +10,7 @@
     <RepositoryType>git</RepositoryType>
     <Authors>DJGosnell</Authors>
     <DocumentationFile>PDFiumCore.xml</DocumentationFile>
+    <OutputPath>$(SolutionDir)../artifacts/</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="runtimes/**" PackagePath="runtimes" />
