@@ -2,8 +2,11 @@
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
+using System.Text;
 using CppSharp;
+using ICSharpCode.SharpZipLib.GZip;
 using ICSharpCode.SharpZipLib.Tar;
 using Newtonsoft.Json;
 
@@ -13,11 +16,34 @@ namespace PDFiumCoreBindingsGenerator
     {
         private static WebClient _client;
 
+        private class LibInfo
+        {
+            public string PackageName { get; }
+            public string SourceLib { get; }
+            public string DestinationLibPath { get; }
+            public LibInfo(string packageName, string sourceLib, string destinationLibPath)
+            {
+                DestinationLibPath = destinationLibPath;
+                PackageName = packageName;
+                SourceLib = sourceLib;
+            }
+
+        }
+
         static void Main(string[] args)
         {
-            var pdfiumReleaseGithubUrl = args[0];
-            var minorBuild = args.Length > 1 ? args[1] : "0";
-            var downloadBinaries = args.Length <= 2 || bool.Parse(args[2]);
+            var gitubReleaseId = args.Length > 0 ? args[0] : "latest";
+            var minorReleaseVersion = args.Length > 1 ? args[1] : "0";
+            var pdfiumReleaseGithubUrl = "https://api.github.com/repos/bblanchon/pdfium-binaries/releases/"+ gitubReleaseId;
+            var downloadBinaries = true;
+
+            var libInformation = new[]
+            {
+                new LibInfo("pdfium-windows-x86", "x86/bin/pdfium.dll", "win-x86/native/"),
+                new LibInfo("pdfium-windows-x64", "x64/bin/pdfium.dll", "win-x64/native/"),
+                new LibInfo("pdfium-linux-x64", "lib/libpdfium.so", "linux-x64/native/"),
+                new LibInfo("pdfium-mac-x64", "lib/libpdfium.dylib", "osx-x64/native/"),
+            };
 
             Console.WriteLine("Downloading PDFium release info...");
             _client = new WebClient();
@@ -37,8 +63,9 @@ namespace PDFiumCoreBindingsGenerator
 
             foreach (var releaseInfoAsset in releaseInfo.Assets)
             {
-                if (releaseInfoAsset.Name.Contains("-v8"))
+                if (!libInformation.Any(info => releaseInfoAsset.Name.ToLower().Contains(info.PackageName)))
                     continue;
+
                 if(downloadBinaries)
                     DownloadAndExtract(releaseInfoAsset.BrowserDownloadUrl);
             }
@@ -62,32 +89,16 @@ namespace PDFiumCoreBindingsGenerator
                 sw.Write(fileContents);
             }
 
-            // Copy the binary files.
-            Directory.CreateDirectory("../../../../PDFiumCore/runtimes/win-x86/native/");
-            if (!EnsureCopy("pdfium-windows-x86/x86/bin/pdfium.dll", "../../../../PDFiumCore/runtimes/win-x86/native/pdfium.dll"))
-                return;
-            File.Copy("pdfium-windows-x86/LICENSE", "../../../../PDFiumCore/runtimes/win-x86/native/PDFium-LICENSE");
-
-            Directory.CreateDirectory("../../../../PDFiumCore/runtimes/win-x64/native/");
-            if (!EnsureCopy("pdfium-windows-x64/x64/bin/pdfium.dll", "../../../../PDFiumCore/runtimes/win-x64/native/pdfium.dll"))
-                return;
-            File.Copy("pdfium-windows-x64/LICENSE", "../../../../PDFiumCore/runtimes/win-x64/native/PDFium-LICENSE");
-
-            Directory.CreateDirectory("../../../../PDFiumCore/runtimes/linux/native/");
-            if (!EnsureCopy("pdfium-linux/lib/libpdfium.so", "../../../../PDFiumCore/runtimes/linux/native/pdfium.so"))
-                return;
-            File.Copy("pdfium-linux/LICENSE", "../../../../PDFiumCore/runtimes/linux/native/PDFium-LICENSE");
-
-            Directory.CreateDirectory("../../../../PDFiumCore/runtimes/osx-x64/native/");
-            if (!EnsureCopy("pdfium-darwin-x64/lib/libpdfium.dylib", "../../../../PDFiumCore/runtimes/osx-x64/native/pdfium.dylib"))
-                return;
-            File.Copy("pdfium-darwin-x64/LICENSE", "../../../../PDFiumCore/runtimes/osx-x64/native/PDFium-LICENSE");
-
-            Directory.CreateDirectory("../../../../PDFiumCore/runtimes/osx-arm64/native/");
-
-            if (!EnsureCopy("pdfium-darwin-arm64/lib/GNUSparseFile.0/libpdfium.dylib", "../../../../PDFiumCore/runtimes/osx-arm64/native/pdfium.dylib"))
-                return;
-            File.Copy("pdfium-darwin-arm64/LICENSE", "../../../../PDFiumCore/runtimes/osx-arm64/native/PDFium-LICENSE");
+            foreach (var libInfo in libInformation)
+            {
+                var baseOutPath = Path.Combine("../../../../PDFiumCore/runtimes/", libInfo.DestinationLibPath);
+                var fileName = Path.GetFileName(libInfo.SourceLib);
+                var libSourcePath = Path.Combine(libInfo.PackageName, libInfo.SourceLib);
+                Directory.CreateDirectory(baseOutPath);
+                if (!EnsureCopy(libSourcePath, Path.Combine(baseOutPath, fileName)))
+                    return;
+                File.Copy("pdfium-windows-x64/LICENSE", Path.Combine(baseOutPath, "LICENSE"));
+            }
 
             var versionParts = releaseInfo.TagName.Split('/');
 
@@ -99,7 +110,7 @@ namespace PDFiumCoreBindingsGenerator
                 writer.WriteLine("<Project>");
                 writer.WriteLine("  <PropertyGroup>");
                 writer.Write("    <Version>");
-                writer.Write($"{versionParts[1]}.{minorBuild}.0.0");
+                writer.Write($"{versionParts[1]}.{minorReleaseVersion}.0.0");
                 writer.WriteLine("</Version>");
                 writer.WriteLine("  </PropertyGroup>");
                 writer.WriteLine("</Project>");
@@ -129,7 +140,9 @@ namespace PDFiumCoreBindingsGenerator
         {
             using (Stream inStream = File.OpenRead(gzArchiveName))
             {
-                using (var tarArchive = TarArchive.CreateInputTarArchive(inStream))
+                Stream gzipStream = new GZipInputStream(inStream);
+
+                using (var tarArchive = TarArchive.CreateInputTarArchive(gzipStream, Encoding.UTF8))
                 {
                     tarArchive.ExtractContents(destFolder);
                 }
