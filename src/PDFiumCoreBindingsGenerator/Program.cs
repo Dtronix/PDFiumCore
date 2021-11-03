@@ -31,7 +31,7 @@ namespace PDFiumCoreBindingsGenerator
 
         }
 
-        private static string GetSolutionDir()
+        private static string GetRootDir()
         {
             var currentDir = Directory.GetCurrentDirectory();
             var dirInfo = new DirectoryInfo(currentDir);
@@ -40,23 +40,25 @@ namespace PDFiumCoreBindingsGenerator
             {
                 var files = dirInfo.GetFiles();
 
-                if (files.Any(f => f.Name == "PDFiumCore.sln"))
+                if (files.Any(f => f.Name == "README.md"))
                     return dirInfo.FullName;
 
                 dirInfo = dirInfo.Parent;
             }
 
-            throw new Exception("Could not find solution directory.");
+            WriteError("Could not determine project root directory.");
+            throw new Exception();
         }
         static void Main(string[] args)
         {
             var gitubReleaseId = args.Length > 0 ? args[0] : "latest";
             var minorReleaseVersion = args.Length > 1 ? args[1] : "0";
             var pdfiumReleaseGithubUrl = "https://api.github.com/repos/bblanchon/pdfium-binaries/releases/"+ gitubReleaseId;
-            var solutionDir = GetSolutionDir();
-            var pdfiumProjectDir = Path.GetFullPath(Path.Combine(solutionDir, "PDFiumCore/"));
+            var rootDir = GetRootDir();
+            var solutionDir = Path.GetFullPath(Path.Combine(rootDir, "src"));
+            var pdfiumProjectDir = Path.GetFullPath(Path.Combine(solutionDir, "PDFiumCore"));
             var destinationCsPath = Path.GetFullPath(Path.Combine(pdfiumProjectDir, "PDFiumCore.cs"));
-            var destinationLibraryPath = Path.GetFullPath(Path.Combine(solutionDir, "../artifacts/libraries/"));
+            var destinationLibraryPath = Path.GetFullPath(Path.Combine(rootDir, "artifacts/libraries"));
 
             var libInformation = new[]
             {
