@@ -12,6 +12,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PDFiumCore.Tests", "PDFiumCore.Tests\PDFiumCore.Tests.csproj", "{FE6A591C-F07C-40BD-B2BE-99782697A98F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PDFiumCoreDemo", "PDFiumCoreDemo\PDFiumCoreDemo.csproj", "{2B264058-A177-4C51-A2F6-7CD2E8C40AB2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +30,14 @@ Global
 		{95F93950-EFB7-47DA-B539-DFB28155F39B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95F93950-EFB7-47DA-B539-DFB28155F39B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95F93950-EFB7-47DA-B539-DFB28155F39B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE6A591C-F07C-40BD-B2BE-99782697A98F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE6A591C-F07C-40BD-B2BE-99782697A98F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE6A591C-F07C-40BD-B2BE-99782697A98F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE6A591C-F07C-40BD-B2BE-99782697A98F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B264058-A177-4C51-A2F6-7CD2E8C40AB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B264058-A177-4C51-A2F6-7CD2E8C40AB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B264058-A177-4C51-A2F6-7CD2E8C40AB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B264058-A177-4C51-A2F6-7CD2E8C40AB2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -37,8 +37,10 @@ jobs:
       run: dotnet build src/PDFiumCore -c ${{ matrix.configuration }}
       
     - name: Pack
-      if: matrix.configuration == 'Release'
       run: dotnet pack src/PDFiumCore -c ${{ matrix.configuration }} -o ./artifacts
+      
+    - name: Unit tests
+      run: dotnet test src/PDFiumCore.Tests -c ${{ matrix.configuration }}
       
     - name: Export artifacts
       if: matrix.configuration == 'Release'
