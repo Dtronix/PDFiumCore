@@ -18,7 +18,6 @@ namespace PDFiumCoreBindingsGenerator
 
         public void Preprocess(Driver driver, ASTContext ctx)
         {
-            
         }
 
         public void Postprocess(Driver driver, ASTContext ctx)
@@ -37,6 +36,7 @@ namespace PDFiumCoreBindingsGenerator
             options.GeneratorKind = GeneratorKind.CSharp;
             //options.Verbose = true;
             options.CommentKind = CommentKind.BCPLSlash;
+            options.OutputDir = _directoryName;
 
             var module = options.AddModule("PDFiumCore");
             module.SharedLibraryName = "pdfium";
