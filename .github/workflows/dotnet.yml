@@ -55,19 +55,14 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/') && matrix.configuration == 'Release'
       uses: olegtarasov/get-tag@v2.1
       id: tagName
-      
-    - name: Create changelog
-      if: startsWith(github.ref, 'refs/tags/') && matrix.configuration == 'Release'
-      run: git log --pretty=format:"- %h %B" "$(git describe --abbrev=0 --tags $(git rev-list --tags --max-count=2) | Select -Last 1)..$(git describe --abbrev=0 --tags $(git rev-list --tags --max-count=2) | Select -First 1)" >> ${{ github.workspace }}/CHANGELOG.TXT
-      
+
     - name: Create release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/') && matrix.configuration == 'Release'
       with:
         name: "PDFiumCore ${{ steps.tagName.outputs.tag }} Released"
         files: artifacts/*.nupkg
-        body_path: ${{github.workspace}}/CHANGELOG.TXT
       
     - name: Push Nuget packages
       if: startsWith(github.ref, 'refs/tags/') && matrix.configuration == 'Release'
-      run: dotnet nuget push artifacts/**/*.nupkg --api-key ${{ secrets.ORG_NUGET_AUTH_TOKEN }} --skip-duplicate
+      run: dotnet nuget push artifacts/*.nupkg --api-key ${{ secrets.ORG_NUGET_AUTH_TOKEN }} --skip-duplicate
