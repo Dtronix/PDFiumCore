@@ -159,7 +159,7 @@ namespace PDFiumCoreBindingsGenerator
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("Error: " + error);
-            Console.ReadLine();
+            throw new Exception(error);
         }
 
         private static bool EnsureCopy(string sourcePath, string destinationPath)
