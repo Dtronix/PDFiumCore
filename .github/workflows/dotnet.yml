@@ -32,6 +32,9 @@ jobs:
         source-url: https://api.nuget.org/v3/index.json
       env:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        
+    - name: Download libraries
+      run: ./download_package.sh
 
     - name: Build
       run: dotnet build src/PDFiumCore -c ${{ matrix.configuration }}

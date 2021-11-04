@@ -52,7 +52,8 @@ namespace PDFiumCoreBindingsGenerator
         static void Main(string[] args)
         {
             var gitubReleaseId = args.Length > 0 ? args[0] : "latest";
-            var minorReleaseVersion = args.Length > 1 ? args[1] : "0";
+            var buildBindings = args.Length > 1 ? bool.Parse(args[1]) : true;
+            var minorReleaseVersion = args.Length > 2 ? args[2] : "0";
             var pdfiumReleaseGithubUrl = "https://api.github.com/repos/bblanchon/pdfium-binaries/releases/"+ gitubReleaseId;
             var rootDir = GetRootDir();
             var solutionDir = Path.GetFullPath(Path.Combine(rootDir, "src"));
@@ -85,6 +86,14 @@ namespace PDFiumCoreBindingsGenerator
 
             Console.WriteLine("Downloaded. Reading PDFium release info...");
             var releaseInfo = JsonConvert.DeserializeObject<Release>(json);
+            var versionTag = releaseInfo!.Name.Split(" ")[1];
+            var versionParts = versionTag.Split(".");
+            var version = new System.Version(
+                int.Parse(versionParts[0]),
+                int.Parse(versionParts[1]),
+                int.Parse(versionParts[2]),
+                int.Parse(minorReleaseVersion == "0" ? versionParts[3] : minorReleaseVersion));
+
             Console.WriteLine("Complete.");
 
             if(Directory.Exists(destinationLibraryPath))
@@ -102,25 +111,28 @@ namespace PDFiumCoreBindingsGenerator
                 info.ExtractedLibBaseDirectory = DownloadAndExtract(releaseInfoAsset.BrowserDownloadUrl, destinationLibraryPath);
             }
 
-            var generatedCsPath = Path.GetFullPath(Path.Combine(win64Info.ExtractedLibBaseDirectory, "PDFiumCore.cs"));
-
-            // Build PDFium.cs from the windows x64 build header files.
-            ConsoleDriver.Run(new PDFiumCoreLibrary(win64Info.ExtractedLibBaseDirectory));
-
-            if (Directory.Exists(Path.Combine(pdfiumProjectDir, "runtimes")))
-                Directory.Delete(Path.Combine(pdfiumProjectDir, "runtimes"), true);
-
-            // Add the additional build information in the header.
-            var fileContents = File.ReadAllText(generatedCsPath);
-
-            using (var fs = new FileStream(destinationCsPath, FileMode.Create, FileAccess.ReadWrite,
-                FileShare.None))
-            using (var sw = new StreamWriter(fs))
+            if (buildBindings)
             {
-                sw.WriteLine($"// Built from precompiled binaries at {releaseInfo.HtmlUrl}");
-                sw.WriteLine($"// PDFium version {releaseInfo.TagName} [{releaseInfo.TargetCommitish}]");
-                sw.WriteLine($"// Built on: {DateTimeOffset.UtcNow:R}");
-                sw.Write(fileContents);
+                var generatedCsPath = Path.GetFullPath(Path.Combine(win64Info.ExtractedLibBaseDirectory, "PDFiumCore.cs"));
+                // Build PDFium.cs from the windows x64 build header files.
+                ConsoleDriver.Run(new PDFiumCoreLibrary(win64Info.ExtractedLibBaseDirectory));
+
+                if (Directory.Exists(Path.Combine(pdfiumProjectDir, "runtimes")))
+                    Directory.Delete(Path.Combine(pdfiumProjectDir, "runtimes"), true);
+
+                // Add the additional build information in the header.
+                var fileContents = File.ReadAllText(generatedCsPath);
+
+                using (var fs = new FileStream(destinationCsPath, FileMode.Create, FileAccess.ReadWrite,
+                    FileShare.None))
+                using (var sw = new StreamWriter(fs))
+                {
+                    sw.WriteLine($"// Built from precompiled binaries at {releaseInfo.HtmlUrl}");
+                    sw.WriteLine($"// Github release api {releaseInfo.Url}");
+                    sw.WriteLine($"// PDFium version v{versionTag} {releaseInfo.TagName} [{releaseInfo.TargetCommitish}]");
+                    sw.WriteLine($"// Built on: {DateTimeOffset.UtcNow:R}");
+                    sw.Write(fileContents);
+                }
             }
 
             foreach (var libInfo in libInformation)
@@ -138,20 +150,30 @@ namespace PDFiumCoreBindingsGenerator
                     Path.Combine(baseOutPath, "LICENSE"));
             }
 
-            var versionParts = releaseInfo.TagName.Split('/');
+            if (buildBindings)
+            {
+                // Create the version file.
+                using (var stream = File.OpenWrite(Path.Combine(solutionDir, "Directory.Build.props")))
+                using (var writer = new StreamWriter(stream))
+                {
+                    writer.WriteLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+                    writer.WriteLine("<Project>");
+                    writer.WriteLine("  <PropertyGroup>");
+                    writer.Write("    <Version>");
+                    writer.Write(version);
+                    writer.WriteLine("</Version>");
+                    writer.WriteLine("  </PropertyGroup>");
+                    writer.WriteLine("</Project>");
+                }
+            }
 
-            // Create the version file.
-            using (var stream = File.OpenWrite(Path.Combine(solutionDir, "Directory.Build.props")))
+            using (var stream = File.OpenWrite(Path.Combine(rootDir, "download_package.sh")))
             using (var writer = new StreamWriter(stream))
             {
-                writer.WriteLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-                writer.WriteLine("<Project>");
-                writer.WriteLine("  <PropertyGroup>");
-                writer.Write("    <Version>");
-                writer.Write($"{versionParts[1]}.{minorReleaseVersion}.0.0");
-                writer.WriteLine("</Version>");
-                writer.WriteLine("  </PropertyGroup>");
-                writer.WriteLine("</Project>");
+                writer.WriteLine("dotnet build src/PDFiumCoreBindingsGenerator/PDFiumCoreBindingsGenerator.csproj -c Release");
+                writer.Write("dotnet ./src/PDFiumCoreBindingsGenerator/bin/Release/net5.0/PDFiumCoreBindingsGenerator.dll ");
+                writer.Write(releaseInfo.Id);
+                writer.WriteLine(" false");
             }
         }
 
