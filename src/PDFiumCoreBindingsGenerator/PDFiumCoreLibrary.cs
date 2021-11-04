@@ -9,16 +9,18 @@ namespace PDFiumCoreBindingsGenerator
     class PDFiumCoreLibrary : ILibrary
     {
         private readonly string _directoryName;
+        private readonly string _exeLocation;
 
         public PDFiumCoreLibrary(string directoryName)
         {
             _directoryName = directoryName;
+            _exeLocation = Path.GetDirectoryName(typeof(PDFiumCoreLibrary).Assembly.Location);
+
         }
 
 
         public void Preprocess(Driver driver, ASTContext ctx)
         {
-            
         }
 
         public void Postprocess(Driver driver, ASTContext ctx)
@@ -37,13 +39,15 @@ namespace PDFiumCoreBindingsGenerator
             options.GeneratorKind = GeneratorKind.CSharp;
             //options.Verbose = true;
             options.CommentKind = CommentKind.BCPLSlash;
+            options.OutputDir = _directoryName;
 
             var module = options.AddModule("PDFiumCore");
             module.SharedLibraryName = "pdfium";
-   
+
             // Ensure that the win32 includes are ignored.
             module.Undefines.Add("_WIN32");
 
+            module.IncludeDirs.Add(Path.Combine(_exeLocation, "lib/clang/14.0.0/include"));
             module.IncludeDirs.Add(includeDirectory);
             module.IncludeDirs.Add(Path.Combine(includeDirectory, "cpp"));
 

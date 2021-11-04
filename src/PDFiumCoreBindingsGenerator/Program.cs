@@ -21,6 +21,7 @@ namespace PDFiumCoreBindingsGenerator
             public string PackageName { get; }
             public string SourceLib { get; }
             public string DestinationLibPath { get; }
+            public string ExtractedLibBaseDirectory { get; set; }
             public LibInfo(string packageName, string sourceLib, string destinationLibPath)
             {
                 DestinationLibPath = destinationLibPath;
@@ -30,20 +31,46 @@ namespace PDFiumCoreBindingsGenerator
 
         }
 
+        private static string GetRootDir()
+        {
+            var currentDir = Directory.GetCurrentDirectory();
+            var dirInfo = new DirectoryInfo(currentDir);
+
+            while (dirInfo?.Exists == true)
+            {
+                var files = dirInfo.GetFiles();
+
+                if (files.Any(f => f.Name == "README.md"))
+                    return dirInfo.FullName;
+
+                dirInfo = dirInfo.Parent;
+            }
+
+            WriteError("Could not determine project root directory.");
+            throw new Exception();
+        }
         static void Main(string[] args)
         {
             var gitubReleaseId = args.Length > 0 ? args[0] : "latest";
-            var minorReleaseVersion = args.Length > 1 ? args[1] : "0";
+            var buildBindings = args.Length > 1 ? bool.Parse(args[1]) : true;
+            var minorReleaseVersion = args.Length > 2 ? args[2] : "0";
             var pdfiumReleaseGithubUrl = "https://api.github.com/repos/bblanchon/pdfium-binaries/releases/"+ gitubReleaseId;
-            var downloadBinaries = true;
+            var rootDir = GetRootDir();
+            var solutionDir = Path.GetFullPath(Path.Combine(rootDir, "src"));
+            var pdfiumProjectDir = Path.GetFullPath(Path.Combine(solutionDir, "PDFiumCore"));
+            var destinationCsPath = Path.GetFullPath(Path.Combine(pdfiumProjectDir, "PDFiumCore.cs"));
+            var destinationLibraryPath = Path.GetFullPath(Path.Combine(rootDir, "artifacts/libraries"));
 
             var libInformation = new[]
             {
-                new LibInfo("pdfium-windows-x86", "x86/bin/pdfium.dll", "win-x86/native/"),
-                new LibInfo("pdfium-windows-x64", "x64/bin/pdfium.dll", "win-x64/native/"),
+                new LibInfo("pdfium-win-x86", "x86/bin/pdfium.dll", "win-x86/native/"),
+                new LibInfo("pdfium-win-x64", "x64/bin/pdfium.dll", "win-x64/native/"),
                 new LibInfo("pdfium-linux-x64", "lib/libpdfium.so", "linux-x64/native/"),
                 new LibInfo("pdfium-mac-x64", "lib/libpdfium.dylib", "osx-x64/native/"),
             };
+
+            var win64Info = libInformation.First(i => i.PackageName == "pdfium-win-x64");
+
 
             Console.WriteLine("Downloading PDFium release info...");
             _client = new WebClient();
@@ -59,61 +86,94 @@ namespace PDFiumCoreBindingsGenerator
 
             Console.WriteLine("Downloaded. Reading PDFium release info...");
             var releaseInfo = JsonConvert.DeserializeObject<Release>(json);
+            var versionTag = releaseInfo!.Name.Split(" ")[1];
+            var versionParts = versionTag.Split(".");
+            var version = new System.Version(
+                int.Parse(versionParts[0]),
+                int.Parse(versionParts[1]),
+                int.Parse(versionParts[2]),
+                int.Parse(minorReleaseVersion == "0" ? versionParts[3] : minorReleaseVersion));
+
             Console.WriteLine("Complete.");
+
+            if(Directory.Exists(destinationLibraryPath))
+                Directory.Delete(destinationLibraryPath, true);
+
+            Directory.CreateDirectory(destinationLibraryPath);
 
             foreach (var releaseInfoAsset in releaseInfo.Assets)
             {
-                if (!libInformation.Any(info => releaseInfoAsset.Name.ToLower().Contains(info.PackageName)))
+                var info = libInformation.FirstOrDefault(info =>
+                    releaseInfoAsset.Name.ToLower().Contains(info.PackageName));
+                if (info == null)
                     continue;
 
-                if(downloadBinaries)
-                    DownloadAndExtract(releaseInfoAsset.BrowserDownloadUrl);
+                info.ExtractedLibBaseDirectory = DownloadAndExtract(releaseInfoAsset.BrowserDownloadUrl, destinationLibraryPath);
             }
 
-            // Build PDFium.cs from the windows x64 build header files.
-            ConsoleDriver.Run(new PDFiumCoreLibrary("pdfium-windows-x64"));
-
-            if (Directory.Exists("../../../../PDFiumCore/runtimes"))
-                Directory.Delete("../../../../PDFiumCore/runtimes", true);
-
-            // Add the additional build information in the header.
-            var fileContents = File.ReadAllText("PDFiumCore.cs");
-
-            using (var fs = new FileStream("../../../../PDFiumCore/PDFiumCore.cs", FileMode.Create, FileAccess.ReadWrite,
-                FileShare.None))
-            using (var sw = new StreamWriter(fs))
+            if (buildBindings)
             {
-                sw.WriteLine($"// Built from precompiled binaries at {releaseInfo.HtmlUrl}");
-                sw.WriteLine($"// PDFium version {releaseInfo.TagName} [{releaseInfo.TargetCommitish}]");
-                sw.WriteLine($"// Built on: {DateTimeOffset.UtcNow:R}");
-                sw.Write(fileContents);
+                var generatedCsPath = Path.GetFullPath(Path.Combine(win64Info.ExtractedLibBaseDirectory, "PDFiumCore.cs"));
+                // Build PDFium.cs from the windows x64 build header files.
+                ConsoleDriver.Run(new PDFiumCoreLibrary(win64Info.ExtractedLibBaseDirectory));
+
+                if (Directory.Exists(Path.Combine(pdfiumProjectDir, "runtimes")))
+                    Directory.Delete(Path.Combine(pdfiumProjectDir, "runtimes"), true);
+
+                // Add the additional build information in the header.
+                var fileContents = File.ReadAllText(generatedCsPath);
+
+                using (var fs = new FileStream(destinationCsPath, FileMode.Create, FileAccess.ReadWrite,
+                    FileShare.None))
+                using (var sw = new StreamWriter(fs))
+                {
+                    sw.WriteLine($"// Built from precompiled binaries at {releaseInfo.HtmlUrl}");
+                    sw.WriteLine($"// Github release api {releaseInfo.Url}");
+                    sw.WriteLine($"// PDFium version v{versionTag} {releaseInfo.TagName} [{releaseInfo.TargetCommitish}]");
+                    sw.WriteLine($"// Built on: {DateTimeOffset.UtcNow:R}");
+                    sw.Write(fileContents);
+                }
             }
 
             foreach (var libInfo in libInformation)
             {
-                var baseOutPath = Path.Combine("../../../../PDFiumCore/runtimes/", libInfo.DestinationLibPath);
+                var baseOutPath = Path.Combine(pdfiumProjectDir, "runtimes", libInfo.DestinationLibPath);
                 var fileName = Path.GetFileName(libInfo.SourceLib);
-                var libSourcePath = Path.Combine(libInfo.PackageName, libInfo.SourceLib);
+                var libSourcePath = Path.Combine(libInfo.ExtractedLibBaseDirectory, libInfo.SourceLib);
+
                 Directory.CreateDirectory(baseOutPath);
+
                 if (!EnsureCopy(libSourcePath, Path.Combine(baseOutPath, fileName)))
                     return;
-                File.Copy("pdfium-windows-x64/LICENSE", Path.Combine(baseOutPath, "LICENSE"));
+
+                EnsureCopy(Path.Combine(win64Info.ExtractedLibBaseDirectory, "LICENSE"),
+                    Path.Combine(baseOutPath, "LICENSE"));
             }
 
-            var versionParts = releaseInfo.TagName.Split('/');
+            if (buildBindings)
+            {
+                // Create the version file.
+                using (var stream = File.OpenWrite(Path.Combine(solutionDir, "Directory.Build.props")))
+                using (var writer = new StreamWriter(stream))
+                {
+                    writer.WriteLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+                    writer.WriteLine("<Project>");
+                    writer.WriteLine("  <PropertyGroup>");
+                    writer.Write("    <Version>");
+                    writer.Write(version);
+                    writer.WriteLine("</Version>");
+                    writer.WriteLine("  </PropertyGroup>");
+                    writer.WriteLine("</Project>");
+                }
+            }
 
-            // Create the version file.
-            using (var stream = File.OpenWrite("../../../../Directory.Build.props"))
+            using (var stream = File.OpenWrite(Path.Combine(rootDir, "download_package.sh")))
             using (var writer = new StreamWriter(stream))
             {
-                writer.WriteLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-                writer.WriteLine("<Project>");
-                writer.WriteLine("  <PropertyGroup>");
-                writer.Write("    <Version>");
-                writer.Write($"{versionParts[1]}.{minorReleaseVersion}.0.0");
-                writer.WriteLine("</Version>");
-                writer.WriteLine("  </PropertyGroup>");
-                writer.WriteLine("</Project>");
+                writer.WriteLine("dotnet build src/PDFiumCoreBindingsGenerator/PDFiumCoreBindingsGenerator.csproj -c Release");
+                writer.Write("dotnet ./src/PDFiumCoreBindingsGenerator/bin/Release/net5.0/PDFiumCoreBindingsGenerator.dll ");
+                writer.Write(releaseInfo.Id);
+                writer.WriteLine(" false");
             }
         }
 
@@ -121,7 +181,7 @@ namespace PDFiumCoreBindingsGenerator
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("Error: " + error);
-            Console.ReadLine();
+            throw new Exception(error);
         }
 
         private static bool EnsureCopy(string sourcePath, string destinationPath)
@@ -149,32 +209,33 @@ namespace PDFiumCoreBindingsGenerator
             }
         }
 
-        private static string DownloadAndExtract(string downloadUrl)
+        private static string DownloadAndExtract(string downloadUrl, string baseDestination)
         {
             var uri = new Uri(downloadUrl);
             var filename = Path.GetFileName(uri.LocalPath);
-            var directoryName = Path.GetFileNameWithoutExtension(filename);
+            var fullFilePath = Path.Combine(baseDestination, filename);
+            var destinationDirPath = Path.Combine(baseDestination, Path.GetFileNameWithoutExtension(filename));
 
-            if (File.Exists(filename))
-                File.Delete(filename);
+            if (File.Exists(fullFilePath))
+                File.Delete(fullFilePath);
 
-            if (Directory.Exists(directoryName))
-                Directory.Delete(directoryName, true);
+            if (Directory.Exists(destinationDirPath))
+                Directory.Delete(destinationDirPath, true);
 
             Console.WriteLine($"Downloading {filename}...");
 
-            _client.DownloadFile(downloadUrl, filename);
+            _client.DownloadFile(downloadUrl, fullFilePath);
 
             Console.WriteLine("Download Complete. Unzipping...");
 
             if (filename.EndsWith(".zip"))
-                ZipFile.ExtractToDirectory(filename, directoryName);
+                ZipFile.ExtractToDirectory(fullFilePath, destinationDirPath);
             else
-                ExtractTGZ(filename, directoryName);
+                ExtractTGZ(fullFilePath, destinationDirPath);
 
             Console.WriteLine("Unzip complete.");
 
-            return directoryName;
+            return destinationDirPath;
         }
     }
 }
