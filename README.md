@@ -13,14 +13,7 @@ The preferred way to use this project is to use the [Nuget Package](https://www.
 
 ### Manual Building 
 
-Build PDFiumCoreBindingsGenerator and edit the file at ``PDFiumCoreBindingsGenerator/bin/Release/net5.0/CreatePackage.bat`` and change the URL to the desired release.
-
-PDFiumCoreBindingsGenerator.exe requires the following parameters:
- - [0] Set to either a specific Github API release ID for the `bblanchon/pdfium-binaries` project or `latest`. This is to determine the release version and binary assets to download.
- - [1] Set to true to download the libraries and generate the bindings.  Set to false to only download the libraries.
- - [2] Version to set the Version.Revision property to.  This is used for building patches. Usually set to "0"
-
-Execute the CreatePacakge.bat
+Execute the CreateBindingsPackage.bat
 
 This will do the following:
  - Download the specified files at the passed pdfium-binaries API url.
@@ -29,10 +22,19 @@ This will do the following:
  - Copies the libraries and licenses into their respective ``src/PDFiumCore/runtimes`` directories.
  - Copies/Overrides ``src/PDFiumCore/PDFiumCore.cs`` with the newly generated ``PDFiumCore.cs``.
 
+##### PDFiumCoreBindingsGenerator Parameters
+
+PDFiumCoreBindingsGenerator.exe requires the following parameters:
+
+ - [0] Set to either a specific Github API release ID for the `bblanchon/pdfium-binaries` project or `latest`. This is to determine the release version and binary assets to download.
+ - [1] Set to true to download the libraries and generate the bindings.  Set to false to only download the libraries.
+ - [2] Version to set the Version.Revision property to.  This is used for building patches. Usually set to "0"
+
 
 ### ToDo
  - Create an actual parser for the comments and generate functional C# method documentation.
  - Include documentation for more than just the public methods.
+ - Investigate ARM builds for inclusion.
 
 ### Resources
 
