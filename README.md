@@ -17,17 +17,17 @@ Build PDFiumCoreBindingsGenerator and edit the file at ``PDFiumCoreBindingsGener
 
 PDFiumCoreBindingsGenerator.exe requires the following parameters:
  - [0] Set to either a specific Github API release ID for the `bblanchon/pdfium-binaries` project or `latest`. This is to determine the release version and binary assets to download.
- - [1] Version to set the Version.Minor property to.  This is used for building patches. Usually set to "0"
+ - [1] Set to true to download the libraries and generate the bindings.  Set to false to only download the libraries.
+ - [2] Version to set the Version.Revision property to.  This is used for building patches. Usually set to "0"
 
 Execute the CreatePacakge.bat
 
 This will do the following:
  - Download the specified files at the passed pdfium-binaries API url.
- - Extracts the zip & tgz (Actually tar) files into the current directory.
+ - Extracts the zip & tgz files into the `asset/libraries`directory.
  - Opens the pdfium-windows-x64 directory and parses the header files via CppSharp and generates ``PDFiumCore.cs`` in the current directory.
  - Copies the libraries and licenses into their respective ``src/PDFiumCore/runtimes`` directories.
  - Copies/Overrides ``src/PDFiumCore/PDFiumCore.cs`` with the newly generated ``PDFiumCore.cs``.
- - Executes ``dotnet package`` on the PDFiumCore project. and puts the Nuget package in the project root ``output`` directory.
 
 
 ### ToDo
