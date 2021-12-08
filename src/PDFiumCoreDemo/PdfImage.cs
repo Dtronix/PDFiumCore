@@ -18,7 +18,7 @@ namespace PDFiumCoreDemo
 
         public int Stride { get; }
 
-        public Image<Argb32> ImageData { get; }
+        public Image<Bgra32> ImageData { get; }
 
         internal PdfImage(
             FpdfBitmapT pdfBitmap, 
@@ -32,7 +32,7 @@ namespace PDFiumCoreDemo
             Width = width;
             _mgr = new UnmanagedMemoryManager<byte>((byte*)scan0, Stride * Height);
 
-            ImageData = Image.WrapMemory<Argb32>(Configuration.Default, _mgr.Memory, width, height);
+            ImageData = Image.WrapMemory<Bgra32>(Configuration.Default, _mgr.Memory, width, height);
         }
 
         public void Dispose()
