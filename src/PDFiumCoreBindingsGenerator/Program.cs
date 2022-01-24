@@ -63,8 +63,8 @@ namespace PDFiumCoreBindingsGenerator
 
             var libInformation = new[]
             {
-                new LibInfo("pdfium-win-x86", "x86/bin/pdfium.dll", "win-x86/native/"),
-                new LibInfo("pdfium-win-x64", "x64/bin/pdfium.dll", "win-x64/native/"),
+                new LibInfo("pdfium-win-x86", "bin/pdfium.dll", "win-x86/native/"),
+                new LibInfo("pdfium-win-x64", "bin/pdfium.dll", "win-x64/native/"),
                 new LibInfo("pdfium-linux-x64", "lib/libpdfium.so", "linux-x64/native/"),
                 new LibInfo("pdfium-mac-x64", "lib/libpdfium.dylib", "osx-x64/native/"),
             };
