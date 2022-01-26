@@ -12,10 +12,6 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        configuration: [Debug, Release]
-
     runs-on: ubuntu-latest
                              
     steps:
@@ -37,32 +33,31 @@ jobs:
       run: ./download_package.sh
 
     - name: Build
-      run: dotnet build src/PDFiumCore -c ${{ matrix.configuration }}
+      run: dotnet build src/PDFiumCore -c Release
       
     - name: Pack
-      run: dotnet pack src/PDFiumCore -c ${{ matrix.configuration }} -o ./artifacts
+      run: dotnet pack src/PDFiumCore -c Release -o ./artifacts
       
     - name: Unit tests
-      run: dotnet test src/PDFiumCore.Tests -c ${{ matrix.configuration }}
+      run: dotnet test src/PDFiumCore.Tests -c Release
       
     - name: Export artifacts
-      if: matrix.configuration == 'Release'
       uses: actions/upload-artifact@v2
       with:
         path: artifacts/*.nupkg
         
     - name: Get tag name
-      if: startsWith(github.ref, 'refs/tags/') && matrix.configuration == 'Release'
+      if: startsWith(github.ref, 'refs/tags/')
       uses: olegtarasov/get-tag@v2.1
       id: tagName
 
     - name: Create release
       uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/') && matrix.configuration == 'Release'
+      if: startsWith(github.ref, 'refs/tags/')
       with:
         name: "PDFiumCore ${{ steps.tagName.outputs.tag }} Released"
         files: artifacts/*.nupkg
       
     - name: Push Nuget packages
-      if: startsWith(github.ref, 'refs/tags/') && matrix.configuration == 'Release'
+      if: startsWith(github.ref, 'refs/tags/')
       run: dotnet nuget push artifacts/*.nupkg --api-key ${{ secrets.ORG_NUGET_AUTH_TOKEN }} --skip-duplicate
