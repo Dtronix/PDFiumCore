@@ -37,15 +37,24 @@ namespace PDFiumCoreBindingsGenerator
             if (AlreadyVisited(declaration))
                 return false;
 
+            if (declaration.OriginalNamespace is TranslationUnit s)
+            {
+                if (!_headerFiles.ContainsKey(s.FilePath) && File.Exists(s.FilePath))
+                    _headerFiles.Add(s.FilePath, File.ReadAllLines(s.FilePath));
+            }
+            else
+            {
+                s = null;
+            }
+
+            if (declaration is Enumeration)
+            {
+
+            }
 
 
             if (declaration is Function && !(declaration is Method))
             {
-                var s = (TranslationUnit) declaration.OriginalNamespace;
-                if (!_headerFiles.ContainsKey(s.FilePath))
-                    _headerFiles.Add(s.FilePath, File.ReadAllLines(s.FilePath));
-
-
                 var commentLines = new Stack<string>();
 
                 for (int i = declaration.LineNumberStart - 2; i >= 0; i--)
