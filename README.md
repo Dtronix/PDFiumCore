@@ -9,7 +9,7 @@ Bindings are generated from the binaries and header files created at [pdfium-bin
 The preferred way to use this project is to use the [Nuget Package](https://www.nuget.org/packages/PDFiumCore).  This will ensure all the proper bindings in the `*.deps.json` are generated and included for the targeted environments.
 
 ### Build Requirements
-- .NET 5.0
+- .NET 6.0
 
 ### Manual Building 
 

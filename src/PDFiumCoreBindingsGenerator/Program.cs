@@ -171,7 +171,7 @@ namespace PDFiumCoreBindingsGenerator
             using (var writer = new StreamWriter(stream))
             {
                 writer.WriteLine("dotnet build src/PDFiumCoreBindingsGenerator/PDFiumCoreBindingsGenerator.csproj -c Release");
-                writer.Write("dotnet ./src/PDFiumCoreBindingsGenerator/bin/Release/net5.0/PDFiumCoreBindingsGenerator.dll ");
+                writer.Write("dotnet ./src/PDFiumCoreBindingsGenerator/bin/Release/net6.0/PDFiumCoreBindingsGenerator.dll ");
                 writer.Write(releaseInfo.Id);
                 writer.WriteLine(" false");
             }
