@@ -19,10 +19,10 @@
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="runtimes/**" PackagePath="runtimes" />
+    <PackageReference Include="bblanchon.PDFium.Linux" Version="$(Version)" PrivateAssets="analyzers" />
+    <PackageReference Include="bblanchon.PDFium.macOS" Version="$(Version)" PrivateAssets="analyzers" />
+    <PackageReference Include="bblanchon.PDFium.Win32" Version="$(Version)" PrivateAssets="analyzers" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\CppSharp\src\Runtime\MarshalUtil.cs" Link="CppSharp\MarshalUtil.cs" />

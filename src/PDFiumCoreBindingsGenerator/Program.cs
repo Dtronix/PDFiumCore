@@ -61,15 +61,7 @@ namespace PDFiumCoreBindingsGenerator
             var destinationCsPath = Path.GetFullPath(Path.Combine(pdfiumProjectDir, "PDFiumCore.cs"));
             var destinationLibraryPath = Path.GetFullPath(Path.Combine(rootDir, "artifacts/libraries"));
 
-            var libInformation = new[]
-            {
-                new LibInfo("pdfium-win-x86", "bin/pdfium.dll", "win-x86/native/"),
-                new LibInfo("pdfium-win-x64", "bin/pdfium.dll", "win-x64/native/"),
-                new LibInfo("pdfium-linux-x64", "lib/libpdfium.so", "linux-x64/native/"),
-                new LibInfo("pdfium-mac-x64", "lib/libpdfium.dylib", "osx-x64/native/"),
-            };
-
-            var win64Info = libInformation.First(i => i.PackageName == "pdfium-win-x64");
+            var win64Info = new LibInfo("pdfium-win-x64", "bin/pdfium.dll", "win-x64/native/");
 
 
             Console.WriteLine("Downloading PDFium release info...");
@@ -101,15 +93,8 @@ namespace PDFiumCoreBindingsGenerator
 
             Directory.CreateDirectory(destinationLibraryPath);
 
-            foreach (var releaseInfoAsset in releaseInfo.Assets)
-            {
-                var info = libInformation.FirstOrDefault(info =>
-                    releaseInfoAsset.Name.ToLower().Contains(info.PackageName));
-                if (info == null)
-                    continue;
-
-                info.ExtractedLibBaseDirectory = DownloadAndExtract(releaseInfoAsset.BrowserDownloadUrl, destinationLibraryPath);
-            }
+            var win64Asset = releaseInfo.Assets.First(a => a.Name.ToLower().Contains(win64Info.PackageName));
+            win64Info.ExtractedLibBaseDirectory = DownloadAndExtract(win64Asset.BrowserDownloadUrl, destinationLibraryPath);
 
             if (buildBindings)
             {
@@ -133,21 +118,6 @@ namespace PDFiumCoreBindingsGenerator
                     sw.WriteLine($"// Built on: {DateTimeOffset.UtcNow:R}");
                     sw.Write(fileContents);
                 }
-            }
-
-            foreach (var libInfo in libInformation)
-            {
-                var baseOutPath = Path.Combine(pdfiumProjectDir, "runtimes", libInfo.DestinationLibPath);
-                var fileName = Path.GetFileName(libInfo.SourceLib);
-                var libSourcePath = Path.Combine(libInfo.ExtractedLibBaseDirectory, libInfo.SourceLib);
-
-                Directory.CreateDirectory(baseOutPath);
-
-                if (!EnsureCopy(libSourcePath, Path.Combine(baseOutPath, fileName)))
-                    return;
-
-                EnsureCopy(Path.Combine(win64Info.ExtractedLibBaseDirectory, "LICENSE"),
-                    Path.Combine(baseOutPath, "LICENSE"));
             }
 
             if (buildBindings)
