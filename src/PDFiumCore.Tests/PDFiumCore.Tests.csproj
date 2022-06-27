@@ -8,6 +8,7 @@
       $(ProjectDir)..\..\artifacts\;
       https://api.nuget.org/v3/index.json;
     </RestoreSources>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
