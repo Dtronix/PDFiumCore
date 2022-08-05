@@ -13,6 +13,7 @@ if($?)
 	
 	$confirmation = Read-Host "Do you want to push the new tag? (y/n)"
 	if ($confirmation -eq 'y') {
+		git push origin
 		git push origin $version 
 	}
 }
