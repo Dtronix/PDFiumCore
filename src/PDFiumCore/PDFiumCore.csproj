@@ -34,4 +34,7 @@
     <Compile Include="..\CppSharp\src\Runtime\UTF8Marshaller.cs" Link="CppSharp\UTF8Marshaller.cs" />
     <Compile Include="..\CppSharp\src\Runtime\VTables.cs" Link="CppSharp\VTables.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="icon.png" Pack="true" PackagePath=""/>
+  </ItemGroup>
 </Project>
