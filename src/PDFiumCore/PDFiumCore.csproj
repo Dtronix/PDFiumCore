@@ -9,6 +9,7 @@
     <RepositoryUrl>https://github.com/Dtronix/PDFiumCore</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <Authors>DJGosnell</Authors>
+	<PackageIcon>icon.png</PackageIcon>
     <DocumentationFile>PDFiumCore.xml</DocumentationFile>
     <OutputPath>$(SolutionDir)../artifacts/</OutputPath>
     <IncludeSymbols>true</IncludeSymbols>
