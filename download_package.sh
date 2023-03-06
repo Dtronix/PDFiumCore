@@ -1,2 +1,2 @@
 dotnet build src/PDFiumCoreBindingsGenerator/PDFiumCoreBindingsGenerator.csproj -c Release
-dotnet ./src/PDFiumCoreBindingsGenerator/bin/Release/net6.0/PDFiumCoreBindingsGenerator.dll 93746563 false
+dotnet ./src/PDFiumCoreBindingsGenerator/bin/Release/net6.0/PDFiumCoreBindingsGenerator.dll 94590939 false
