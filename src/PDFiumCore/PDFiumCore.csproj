@@ -24,6 +24,7 @@
     <PackageReference Include="bblanchon.PDFium.macOS" Version="$(Version)" PrivateAssets="analyzers" />
     <PackageReference Include="bblanchon.PDFium.Win32" Version="$(Version)" PrivateAssets="analyzers" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" Condition="'$(TargetFramework)' == 'netstandard2.1'" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\CppSharp\src\Runtime\MarshalUtil.cs" Link="CppSharp\MarshalUtil.cs" />
@@ -35,6 +36,6 @@
     <Compile Include="..\CppSharp\src\Runtime\VTables.cs" Link="CppSharp\VTables.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="icon.png" Pack="true" PackagePath=""/>
+    <None Include="icon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 </Project>
