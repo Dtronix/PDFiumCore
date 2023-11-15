@@ -41,6 +41,10 @@ namespace PDFiumCoreBindingsGenerator
             options.CommentKind = CommentKind.BCPLSlash;
             options.OutputDir = _directoryName;
 
+            driver.Options.ZeroAllocatedMemory = cls => {
+                return cls.QualifiedName == "FPDF_FORMFILLINFO";
+            };
+
             var module = options.AddModule("PDFiumCore");
             module.SharedLibraryName = "pdfium";
 
