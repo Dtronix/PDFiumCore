@@ -1,0 +1,13 @@
+stages:
+- stage: Build
+  jobs:
+   - job: BuildAndPack
+     displayName: 'Build and Pack'
+     steps:
+      - checkout: self
+        submodules: 'true'
+      - task: PowerShell@2
+        inputs:
+          targetType: 'inline'
+          script: |
+            ./build_test_publish.ps1

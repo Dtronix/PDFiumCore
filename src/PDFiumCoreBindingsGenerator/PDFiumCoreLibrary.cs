@@ -40,6 +40,7 @@ namespace PDFiumCoreBindingsGenerator
             //options.Verbose = true;
             options.CommentKind = CommentKind.BCPLSlash;
             options.OutputDir = _directoryName;
+            options.Encoding = System.Text.Encoding.Default;
 
             driver.Options.ZeroAllocatedMemory = cls => {
                 return cls.QualifiedName == "FPDF_FORMFILLINFO";
