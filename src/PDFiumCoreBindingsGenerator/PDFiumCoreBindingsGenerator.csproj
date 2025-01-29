@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CppSharp" Version="1.0.0">
+    <PackageReference Include="CppSharp" Version="1.1.5.3168">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Newtonsoft.Json" version="13.0.1" />
-    <PackageReference Include="SharpZipLib" Version="1.3.3" />
+    <PackageReference Include="Newtonsoft.Json" version="13.0.3" />
+    <PackageReference Include="SharpZipLib" Version="1.4.2" />
   </ItemGroup>
 </Project>
