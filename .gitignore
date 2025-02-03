@@ -2,3 +2,4 @@
 /src/PDFiumCore/PDFiumCore.xml
 /artifacts/*
 /src/PDFiumCore/runtimes
+/src/PDFiumCoreBindingsGenerator/Properties/launchSettings.json
