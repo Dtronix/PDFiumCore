@@ -2,5 +2,6 @@
 <Project>
   <PropertyGroup>
     <Version>146.0.7678.0</Version>
+    <PDFiumVersion>146.0.7678</PDFiumVersion>
   </PropertyGroup>
 </Project>

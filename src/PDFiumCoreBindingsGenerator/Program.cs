@@ -123,6 +123,9 @@ namespace PDFiumCoreBindingsGenerator
             if (buildBindings)
             {
                 // Create the version file.
+                // PDFiumVersion is the upstream w.x.y version used for bblanchon NuGet dependencies.
+                // Version includes the revision segment and is used for the PDFiumCore package version.
+                var pdfiumVersion = $"{versionParts[0]}.{versionParts[1]}.{versionParts[2]}";
                 using (var stream = File.OpenWrite(Path.Combine(solutionDir, "Directory.Build.props")))
                 using (var writer = new StreamWriter(stream))
                 {
@@ -132,6 +135,9 @@ namespace PDFiumCoreBindingsGenerator
                     writer.Write("    <Version>");
                     writer.Write(version);
                     writer.WriteLine("</Version>");
+                    writer.Write("    <PDFiumVersion>");
+                    writer.Write(pdfiumVersion);
+                    writer.WriteLine("</PDFiumVersion>");
                     writer.WriteLine("  </PropertyGroup>");
                     writer.WriteLine("</Project>");
                 }
