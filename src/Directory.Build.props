@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
-    <Version>146.0.7678.0</Version>
+    <Version>146.0.7678.1</Version>
     <PDFiumVersion>146.0.7678</PDFiumVersion>
   </PropertyGroup>
 </Project>
