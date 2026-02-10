@@ -154,6 +154,10 @@ jobs:
       if: steps.compare.outputs.needs_update == 'true'
       run: dotnet test src/PDFiumCore.Tests -c Release
 
+    - name: Pack
+      if: steps.compare.outputs.needs_update == 'true'
+      run: dotnet pack src/PDFiumCore -c Release -o ./artifacts
+
     - name: Commit, tag and push
       if: steps.compare.outputs.needs_update == 'true'
       run: |
@@ -168,3 +172,17 @@ jobs:
         git commit -m "PDFium version v${VERSION} ${TAG_NAME} [master]"
         git tag "$TAG"
         git push origin master "$TAG"
+
+    - name: Create release
+      if: steps.compare.outputs.needs_update == 'true'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v${{ steps.upstream.outputs.version }}
+        name: "PDFiumCore v${{ steps.upstream.outputs.version }} Released"
+        files: |
+          artifacts/*.nupkg
+          artifacts/*.snupkg
+
+    - name: Push NuGet packages
+      if: steps.compare.outputs.needs_update == 'true'
+      run: dotnet nuget push artifacts/*.nupkg --api-key ${{ secrets.ORG_NUGET_AUTH_TOKEN }} --skip-duplicate
