@@ -112,11 +112,14 @@ jobs:
         PACKAGE="bblanchon.PDFium.Win32"
         URL="https://api.nuget.org/v3-flatcontainer/${PACKAGE,,}/index.json"
 
-        echo "Checking NuGet for $PACKAGE version $VERSION..."
+        # NuGet normalizes versions by stripping trailing .0 (e.g. 146.0.7678.0 -> 146.0.7678)
+        NORMALIZED_VERSION=$(echo "$VERSION" | sed 's/\.0$//')
+
+        echo "Checking NuGet for $PACKAGE version $VERSION (normalized: $NORMALIZED_VERSION)..."
         VERSIONS=$(curl -s "$URL" | jq -r '.versions[]')
 
-        if echo "$VERSIONS" | grep -qx "$VERSION"; then
-          echo "$PACKAGE $VERSION found on NuGet."
+        if echo "$VERSIONS" | grep -qx "$VERSION\|$NORMALIZED_VERSION"; then
+          echo "$PACKAGE found on NuGet."
         else
           echo "::error::$PACKAGE $VERSION not found on NuGet. The upstream GitHub release may have been published before NuGet packages. Try again later."
           exit 1
