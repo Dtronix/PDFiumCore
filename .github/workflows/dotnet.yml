@@ -13,10 +13,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-                             
+
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -28,40 +28,70 @@ jobs:
         source-url: https://api.nuget.org/v3/index.json
       env:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        
+
     - name: Download libraries
       run: ./download_package.sh
 
     - name: Build
       run: dotnet build src/PDFiumCore -c Release
-      
+
     - name: Pack
       run: dotnet pack src/PDFiumCore -c Release -o ./artifacts
-      
+
     - name: Unit tests
       run: dotnet test src/PDFiumCore.Tests -c Release
-      
+
     - name: Export artifacts
       uses: actions/upload-artifact@v4
       with:
         path: |
           artifacts/*.nupkg
           artifacts/*.snupkg
-        
+
     - name: Get tag name
       if: startsWith(github.ref, 'refs/tags/')
-      uses: olegtarasov/get-tag@v2.1
       id: tagName
+      run: echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
 
     - name: Create release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
         name: "PDFiumCore ${{ steps.tagName.outputs.tag }} Released"
         files: |
           artifacts/*.nupkg
           artifacts/*.snupkg
-      
+
     - name: Push Nuget packages
       if: startsWith(github.ref, 'refs/tags/')
       run: dotnet nuget push artifacts/*.nupkg --api-key ${{ secrets.ORG_NUGET_AUTH_TOKEN }} --skip-duplicate
+
+  auto-tag:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: build
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Check for automated update and tag
+      run: |
+        # Only auto-tag commits from automated-update PRs
+        COMMIT_MSG=$(git log -1 --pretty=%s)
+        if echo "$COMMIT_MSG" | grep -qP '^PDFium version v\d+\.\d+\.\d+\.\d+'; then
+          VERSION=$(grep -oP '(?<=<Version>).*(?=</Version>)' src/Directory.Build.props)
+          TAG="v${VERSION}"
+
+          # Check if tag already exists
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping."
+          else
+            echo "Creating tag $TAG"
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi
+        else
+          echo "Not an automated PDFium update commit, skipping auto-tag."
+        fi
