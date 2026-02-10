@@ -1,0 +1,167 @@
+name: Check PDFium Update
+
+on:
+  schedule:
+    # 1st and 15th of each month at 08:00 UTC
+    - cron: '0 8 1,15 * *'
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Force update even if version matches'
+        type: boolean
+        default: false
+      target_version:
+        description: 'Specific bblanchon version to target (e.g. 134.0.6996.0). Leave empty for latest.'
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  check-and-update:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Detect upstream release
+      id: upstream
+      run: |
+        TARGET_VERSION="${{ github.event.inputs.target_version }}"
+
+        if [ -n "$TARGET_VERSION" ]; then
+          # Fetch all releases and find the one matching the requested version
+          PAGE=1
+          FOUND=false
+          while [ "$FOUND" = "false" ] && [ "$PAGE" -le 10 ]; do
+            RELEASES=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/bblanchon/pdfium-binaries/releases?per_page=30&page=$PAGE")
+
+            MATCH=$(echo "$RELEASES" | jq -r --arg v "$TARGET_VERSION" \
+              '.[] | select(.name | test($v)) | @json' | head -1)
+
+            if [ -n "$MATCH" ]; then
+              RELEASE_JSON="$MATCH"
+              FOUND=true
+            else
+              COUNT=$(echo "$RELEASES" | jq length)
+              if [ "$COUNT" -lt 30 ]; then break; fi
+              PAGE=$((PAGE + 1))
+            fi
+          done
+
+          if [ "$FOUND" = "false" ]; then
+            echo "::error::Could not find release matching version $TARGET_VERSION"
+            exit 1
+          fi
+        else
+          # Fetch latest release
+          RELEASE_JSON=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/bblanchon/pdfium-binaries/releases/latest)
+        fi
+
+        RELEASE_NAME=$(echo "$RELEASE_JSON" | jq -r '.name')
+        RELEASE_ID=$(echo "$RELEASE_JSON" | jq -r '.id')
+        TAG_NAME=$(echo "$RELEASE_JSON" | jq -r '.tag_name')
+
+        # Extract version from name like "PDFium v134.0.6996.0" or "PDFium 134.0.6996.0"
+        UPSTREAM_VERSION=$(echo "$RELEASE_NAME" | grep -oP '\d+\.\d+\.\d+\.\d+')
+
+        if [ -z "$UPSTREAM_VERSION" ]; then
+          echo "::error::Could not parse version from release name: $RELEASE_NAME"
+          exit 1
+        fi
+
+        echo "version=$UPSTREAM_VERSION" >> "$GITHUB_OUTPUT"
+        echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
+        echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+        echo "Upstream: $UPSTREAM_VERSION (release ID: $RELEASE_ID, tag: $TAG_NAME)"
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        submodules: true
+        ref: master
+
+    - name: Read current version
+      id: current
+      run: |
+        CURRENT_VERSION=$(grep -oP '(?<=<Version>).*(?=</Version>)' src/Directory.Build.props)
+        echo "version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
+        echo "Current version: $CURRENT_VERSION"
+
+    - name: Compare versions
+      id: compare
+      run: |
+        UPSTREAM="${{ steps.upstream.outputs.version }}"
+        CURRENT="${{ steps.current.outputs.version }}"
+        FORCE="${{ github.event.inputs.force_update }}"
+
+        if [ "$UPSTREAM" = "$CURRENT" ] && [ "$FORCE" != "true" ]; then
+          echo "No update needed. Upstream ($UPSTREAM) matches current ($CURRENT)."
+          echo "needs_update=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "Update available: $CURRENT -> $UPSTREAM (force=$FORCE)"
+          echo "needs_update=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Verify NuGet package exists
+      if: steps.compare.outputs.needs_update == 'true'
+      run: |
+        VERSION="${{ steps.upstream.outputs.version }}"
+        PACKAGE="bblanchon.PDFium.Win32"
+        URL="https://api.nuget.org/v3-flatcontainer/${PACKAGE,,}/index.json"
+
+        echo "Checking NuGet for $PACKAGE version $VERSION..."
+        VERSIONS=$(curl -s "$URL" | jq -r '.versions[]')
+
+        if echo "$VERSIONS" | grep -qx "$VERSION"; then
+          echo "$PACKAGE $VERSION found on NuGet."
+        else
+          echo "::error::$PACKAGE $VERSION not found on NuGet. The upstream GitHub release may have been published before NuGet packages. Try again later."
+          exit 1
+        fi
+
+    - name: Install .NET
+      if: steps.compare.outputs.needs_update == 'true'
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.*
+
+    - name: Install native dependencies
+      if: steps.compare.outputs.needs_update == 'true'
+      run: sudo apt-get update && sudo apt-get install -y libc6-dev
+
+    - name: Build bindings generator
+      if: steps.compare.outputs.needs_update == 'true'
+      run: dotnet build src/PDFiumCoreBindingsGenerator/PDFiumCoreBindingsGenerator.csproj -c Release
+
+    - name: Generate bindings
+      if: steps.compare.outputs.needs_update == 'true'
+      run: |
+        dotnet src/PDFiumCoreBindingsGenerator/bin/Release/net8.0/PDFiumCoreBindingsGenerator.dll \
+          ${{ steps.upstream.outputs.release_id }} true 0
+
+    - name: Build PDFiumCore
+      if: steps.compare.outputs.needs_update == 'true'
+      run: |
+        dotnet build src/PDFiumCore -c Release
+
+    - name: Run tests
+      if: steps.compare.outputs.needs_update == 'true'
+      run: dotnet test src/PDFiumCore.Tests -c Release
+
+    - name: Commit, tag and push
+      if: steps.compare.outputs.needs_update == 'true'
+      run: |
+        VERSION="${{ steps.upstream.outputs.version }}"
+        TAG_NAME="${{ steps.upstream.outputs.tag_name }}"
+        TAG="v${VERSION}"
+
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+        git add -A
+        git commit -m "PDFium version v${VERSION} ${TAG_NAME} [master]"
+        git tag "$TAG"
+        git push origin master "$TAG"

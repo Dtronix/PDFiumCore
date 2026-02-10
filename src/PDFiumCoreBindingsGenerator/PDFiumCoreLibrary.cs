@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using CppSharp;
 using CppSharp.AST;
 using CppSharp.Generators;
@@ -34,7 +35,12 @@ namespace PDFiumCoreBindingsGenerator
         public void Setup(Driver driver)
         {
             var includeDirectory = Path.Combine(_directoryName, "include");
-            driver.ParserOptions.SetupMSVC(VisualStudioVersion.Latest);
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                driver.ParserOptions.SetupMSVC(VisualStudioVersion.Latest);
+            }
+
             var options = driver.Options;
             options.GeneratorKind = GeneratorKind.CSharp;
             //options.Verbose = true;
