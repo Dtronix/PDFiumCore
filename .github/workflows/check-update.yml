@@ -164,10 +164,18 @@ jobs:
       if: steps.compare.outputs.needs_update == 'true'
       run: dotnet pack src/PDFiumCore -c Release -o ./artifacts
 
+    - name: Read package version
+      if: steps.compare.outputs.needs_update == 'true'
+      id: package
+      run: |
+        PKG_VERSION=$(grep -oP '(?<=<Version>).*(?=</Version>)' src/Directory.Build.props)
+        echo "version=$PKG_VERSION" >> "$GITHUB_OUTPUT"
+        echo "Package version: $PKG_VERSION"
+
     - name: Commit, tag and push
       if: steps.compare.outputs.needs_update == 'true'
       run: |
-        VERSION="${{ steps.upstream.outputs.version }}"
+        VERSION="${{ steps.package.outputs.version }}"
         TAG_NAME="${{ steps.upstream.outputs.tag_name }}"
         TAG="v${VERSION}"
 
@@ -183,8 +191,8 @@ jobs:
       if: steps.compare.outputs.needs_update == 'true'
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: v${{ steps.upstream.outputs.version }}
-        name: "PDFiumCore v${{ steps.upstream.outputs.version }} Released"
+        tag_name: v${{ steps.package.outputs.version }}
+        name: "PDFiumCore v${{ steps.package.outputs.version }} Released"
         files: |
           artifacts/*.nupkg
           artifacts/*.snupkg
