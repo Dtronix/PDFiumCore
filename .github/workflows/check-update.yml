@@ -100,8 +100,9 @@ jobs:
         UPSTREAM="${{ steps.upstream.outputs.version }}"
         CURRENT="${{ steps.current.outputs.version }}"
         FORCE="${{ github.event.inputs.force_update }}"
+        REVISION="${{ github.event.inputs.revision || '0' }}"
 
-        if [ "$UPSTREAM" = "$CURRENT" ] && [ "$FORCE" != "true" ]; then
+        if [ "$UPSTREAM" = "$CURRENT" ] && [ "$FORCE" != "true" ] && [ "$REVISION" = "0" ]; then
           echo "No update needed. Upstream ($UPSTREAM) matches current ($CURRENT)."
           echo "needs_update=false" >> "$GITHUB_OUTPUT"
         else
