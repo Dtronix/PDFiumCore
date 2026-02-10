@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - master
-    tags:
-      - 'v*'
   pull_request:
     branches:
       - master
@@ -50,20 +48,5 @@ jobs:
           artifacts/*.nupkg
           artifacts/*.snupkg
 
-    - name: Get tag name
-      if: startsWith(github.ref, 'refs/tags/')
-      id: tagName
-      run: echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
-
-    - name: Create release
-      uses: softprops/action-gh-release@v2
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        name: "PDFiumCore ${{ steps.tagName.outputs.tag }} Released"
-        files: |
-          artifacts/*.nupkg
-          artifacts/*.snupkg
-
-    - name: Push Nuget packages
-      if: startsWith(github.ref, 'refs/tags/')
-      run: dotnet nuget push artifacts/*.nupkg --api-key ${{ secrets.ORG_NUGET_AUTH_TOKEN }} --skip-duplicate
+    # NuGet publishing is handled by the check-update workflow.
+    # Tag-triggered releases and pushes are disabled here to prevent accidental publishes.
