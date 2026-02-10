@@ -30,7 +30,9 @@ jobs:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
     - name: Download libraries
-      run: ./download_package.sh
+      run: |
+        dotnet build src/PDFiumCoreBindingsGenerator/PDFiumCoreBindingsGenerator.csproj -c Release
+        dotnet src/PDFiumCoreBindingsGenerator/bin/Release/net8.0/PDFiumCoreBindingsGenerator.dll latest false
 
     - name: Build
       run: dotnet build src/PDFiumCore -c Release
@@ -65,41 +67,3 @@ jobs:
     - name: Push Nuget packages
       if: startsWith(github.ref, 'refs/tags/')
       run: dotnet nuget push artifacts/*.nupkg --api-key ${{ secrets.ORG_NUGET_AUTH_TOKEN }} --skip-duplicate
-
-  auto-tag:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    needs: build
-    permissions:
-      contents: write
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Check for automated update and tag
-      env:
-        GITHUB_REF_NAME: ${{ github.ref_name }}
-      run: |
-        # Hard guard: abort if not on master
-        if [ "$GITHUB_REF_NAME" != "master" ]; then
-          echo "::error::Auto-tag must only run on master (got $GITHUB_REF_NAME). Aborting."
-          exit 1
-        fi
-
-        # Only auto-tag commits from automated-update PRs
-        COMMIT_MSG=$(git log -1 --pretty=%s)
-        if echo "$COMMIT_MSG" | grep -qP '^PDFium version v\d+\.\d+\.\d+\.\d+'; then
-          VERSION=$(grep -oP '(?<=<Version>).*(?=</Version>)' src/Directory.Build.props)
-          TAG="v${VERSION}"
-
-          # Check if tag already exists
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG already exists, skipping."
-          else
-            echo "Creating tag $TAG"
-            git tag "$TAG"
-            git push origin "$TAG"
-          fi
-        else
-          echo "Not an automated PDFium update commit, skipping auto-tag."
-        fi
