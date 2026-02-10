@@ -14,6 +14,10 @@ on:
         description: 'Specific bblanchon version to target (e.g. 134.0.6996.0). Leave empty for latest.'
         type: string
         default: ''
+      revision:
+        description: 'Revision number for the NuGet package version (4th segment, e.g. 0 -> x.y.z.0, 1 -> x.y.z.1). Defaults to 0.'
+        type: string
+        default: '0'
 
 permissions:
   contents: write
@@ -142,8 +146,9 @@ jobs:
     - name: Generate bindings
       if: steps.compare.outputs.needs_update == 'true'
       run: |
+        REVISION="${{ github.event.inputs.revision || '0' }}"
         dotnet src/PDFiumCoreBindingsGenerator/bin/Release/net8.0/PDFiumCoreBindingsGenerator.dll \
-          ${{ steps.upstream.outputs.release_id }} true 0
+          ${{ steps.upstream.outputs.release_id }} true "$REVISION"
 
     - name: Build PDFiumCore
       if: steps.compare.outputs.needs_update == 'true'
@@ -185,4 +190,4 @@ jobs:
 
     - name: Push NuGet packages
       if: steps.compare.outputs.needs_update == 'true'
-      run: dotnet nuget push artifacts/*.nupkg --api-key ${{ secrets.ORG_NUGET_AUTH_TOKEN }} --skip-duplicate
+      run: dotnet nuget push artifacts/*.nupkg --api-key ${{ secrets.ORG_NUGET_AUTH_TOKEN }} --source https://api.nuget.org/v3/index.json --skip-duplicate
