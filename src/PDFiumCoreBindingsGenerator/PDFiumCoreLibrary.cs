@@ -63,7 +63,7 @@ namespace PDFiumCoreBindingsGenerator
 
             var dirinfo = new DirectoryInfo(includeDirectory);
             
-            foreach (var file in dirinfo.GetFiles("*.h"))
+            foreach (var file in dirinfo.GetFiles("*.h").OrderBy(f => f.Name))
             {
                 if(file.Name == "fpdf_ext.h")
                     continue;
